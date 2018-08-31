@@ -9,6 +9,7 @@
 
 #define ENTRIES_PER_PAGE (BLCKSZ / sizeof(DistributedLogEntry))
 #define TransactionIdToPage(localXid) ((localXid) / (TransactionId) ENTRIES_PER_PAGE)
+#define TransactionIdToEntry(localXid) ((localXid) % (TransactionId) ENTRIES_PER_PAGE)
 
 int
 main(int argc, char** argv)
@@ -51,4 +52,7 @@ main(int argc, char** argv)
 	/*
 	 * 3. Iterate over the contents.
 	 */
+	DistributedLogEntry 	*ptr;
+	ptr = (DistributedLogEntry *)buffer;
+	distribXid = ptr->distribXid;
 }
