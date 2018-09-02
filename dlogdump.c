@@ -22,6 +22,7 @@ main(int argc, char** argv)
 	int segno = pageno / SLRU_PAGES_PER_SEGMENT;
 	int rpageno = pageno % SLRU_PAGES_PER_SEGMENT;
 	int offset = rpageno * BLCKSZ;
+	char distribId[TMGIDSIZE];
 
 	/*
 	 * 1. open dlog file: BasicOpenFile()
@@ -52,7 +53,15 @@ main(int argc, char** argv)
 	/*
 	 * 3. Iterate over the contents.
 	 */
+	printf("dxid\t |\tlxid\t |\tdistributed_id\n");
+	int i = 0;
 	DistributedLogEntry 	*ptr;
-	ptr = (DistributedLogEntry *)buffer;
-	distribXid = ptr->distribXid;
+	for (i=0, ptr=(DistributedLogEntry *)buffer; i<=ENTRIES_PER_PAGE; i++, ptr++)
+	{
+		distribXid = ptr->distribXid;
+		distribTimeStamp = ptr->distribTimeStamp;
+		sprintf(distribId, "%u-%.10u", distribTimeStamp, distribXid);
+
+		printf("%u\t |\t%u\t |\t%s \n", distribXid, i, distribId);
+	}
 }
