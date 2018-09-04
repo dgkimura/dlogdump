@@ -27,7 +27,13 @@ main(int argc, char** argv)
 	/*
 	 * 1. open dlog file: BasicOpenFile()
 	 */
-	int fd = open("dlog", O_RDWR | PG_BINARY, S_IRUSR | S_IWUSR);
+	char *fname = argv[argc - 1];
+	int fd = open(fname, O_RDWR | PG_BINARY, S_IRUSR | S_IWUSR);
+	if (fd < 0)
+	{
+		printf("Error: could not open distributed log file %s.\n", fname);
+		return -1;
+	}
 
 	/*
 	 * 2. load dlog contents: lseek(), read(), close()
