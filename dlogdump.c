@@ -17,17 +17,24 @@ main(int argc, char** argv)
 	TransactionId indexXid;
 	DistributedTransactionTimeStamp distribTimeStamp;
 	DistributedTransactionId distribXid;
+	LocalTransactionId localXid;
+	TransactionId baseXid;
 
 	int pageno = TransactionIdToPage(FirstNormalTransactionId);
 	int segno = pageno / SLRU_PAGES_PER_SEGMENT;
 	int rpageno = pageno % SLRU_PAGES_PER_SEGMENT;
 	int offset = rpageno * BLCKSZ;
 	char distribId[TMGIDSIZE];
+	char *fname = argv[argc - 1];
+
+	if (sscanf(fname, "%4x", &baseXid) != 1)
+	{
+		return -1;
+	}
 
 	/*
 	 * 1. open dlog file: BasicOpenFile()
 	 */
-	char *fname = argv[argc - 1];
 	int fd = open(fname, O_RDWR | PG_BINARY, S_IRUSR | S_IWUSR);
 	if (fd < 0)
 	{
@@ -59,15 +66,16 @@ main(int argc, char** argv)
 	/*
 	 * 3. Iterate over the contents.
 	 */
-	printf("dxid\t |\tlxid\t |\tdistributed_id\n");
+	printf("\tdxid\t |\tlxid\t |\tdistributed_id\n");
 	int i = 0;
-	DistributedLogEntry 	*ptr;
+	DistributedLogEntry *ptr;
 	for (i=0, ptr=(DistributedLogEntry *)buffer; i<=ENTRIES_PER_PAGE; i++, ptr++)
 	{
-		distribXid = ptr->distribXid;
+		distribXid = baseXid + ptr->distribXid;
+		localXid = baseXid + i;
 		distribTimeStamp = ptr->distribTimeStamp;
 		sprintf(distribId, "%u-%.10u", distribTimeStamp, distribXid);
 
-		printf("%u\t |\t%u\t |\t%s \n", distribXid, i, distribId);
+		printf("\t%u\t |\t%u\t |\t%s \n", distribXid, localXid, distribId);
 	}
 }
